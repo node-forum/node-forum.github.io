@@ -6,8 +6,13 @@
 </head>
 <body>
 <div id="demo">
-    <p>{{message}}</p>
-    <input v-model="message">
+    <p>{{msg}}</p>
+    <input v-model="msg">
+    <ul>
+        <li v-repeat="arr">
+            {{msg}}
+        </li>
+    </ul>
 </div>
 
 <mycom>

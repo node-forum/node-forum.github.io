@@ -1,13 +1,13 @@
 /**
  * Created by edwin on 2015/12/26.
  */
-var data = {
-    message: 'Hello Vue.js!'
-}
 
-var demo = new Vue({
+var vue = new Vue({
     el: '#demo',
-    data: data
+    data: {
+        msg: 'Hello Vue.js!',
+        arr:[{msg:'A'},{msg:'B'}]
+    }
 });
 
 var myCompoment = Vue.extend({
