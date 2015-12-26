@@ -8,4 +8,11 @@ var data = {
 var demo = new Vue({
     el: '#demo',
     data: data
-})
+});
+
+var myCompoment = Vue.extend({
+    template:"<p>{{msg}}</p>",
+    paramAttributes:['msg']
+});
+
+Vue.component('mycom',myCompoment);
