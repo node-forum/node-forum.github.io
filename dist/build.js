@@ -1666,7 +1666,7 @@ webpackJsonp([0,1],[
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {/*!
-	 * Vue.js v1.0.11
+	 * Vue.js v1.0.13
 	 * (c) 2015 Evan You
 	 * Released under the MIT License.
 	 */
@@ -2514,22 +2514,10 @@ webpackJsonp([0,1],[
 	  }
 	}
 	
-	/**
-	 * Replace all interpolation tags in a piece of text.
-	 *
-	 * @param {String} text
-	 * @return {String}
-	 */
-	
-	function removeTags(text) {
-	  return text.replace(tagRE, '');
-	}
-	
 	var text$1 = Object.freeze({
 	  compileRegex: compileRegex,
 	  parseText: parseText,
-	  tokensToExp: tokensToExp,
-	  removeTags: removeTags
+	  tokensToExp: tokensToExp
 	});
 	
 	var delimiters = ['{{', '}}'];
@@ -2916,7 +2904,7 @@ webpackJsonp([0,1],[
 	
 	function setClass(el, cls) {
 	  /* istanbul ignore if */
-	  if (isIE9 && el.hasOwnProperty('className')) {
+	  if (isIE9 && !(el instanceof SVGElement)) {
 	    el.className = cls;
 	  } else {
 	    el.setAttribute('class', cls);
@@ -3117,6 +3105,7 @@ webpackJsonp([0,1],[
 	}
 	
 	var commonTagRE = /^(div|p|span|img|a|b|i|br|ul|ol|li|h1|h2|h3|h4|h5|h6|code|pre|table|th|td|tr|form|label|input|select|option|nav|article|section|header|footer)$/;
+	var reservedTagRE = /^(slot|partial|component)$/;
 	
 	/**
 	 * Check if an element is a component, if yes return its
@@ -3130,7 +3119,7 @@ webpackJsonp([0,1],[
 	function checkComponentAttr(el, options) {
 	  var tag = el.tagName.toLowerCase();
 	  var hasAttrs = el.hasAttributes();
-	  if (!commonTagRE.test(tag) && tag !== 'component') {
+	  if (!commonTagRE.test(tag) && !reservedTagRE.test(tag)) {
 	    if (resolveAsset(options, 'components', tag)) {
 	      return { id: tag };
 	    } else {
@@ -3181,6 +3170,7 @@ webpackJsonp([0,1],[
 	
 	function initProp(vm, prop, value) {
 	  var key = prop.path;
+	  value = coerceProp(prop, value);
 	  vm[key] = vm._data[key] = assertProp(prop, value) ? value : undefined;
 	}
 	
@@ -3236,6 +3226,23 @@ webpackJsonp([0,1],[
 	    }
 	  }
 	  return true;
+	}
+	
+	/**
+	 * Force parsing value with coerce option.
+	 *
+	 * @param {*} value
+	 * @param {Object} options
+	 * @return {*}
+	 */
+	
+	function coerceProp(prop, value) {
+	  var coerce = prop.options.coerce;
+	  if (!coerce) {
+	    return value;
+	  }
+	  // coerce is a function
+	  return coerce(value);
 	}
 	
 	function formatType(val) {
@@ -3423,8 +3430,8 @@ webpackJsonp([0,1],[
 	    var ids = Object.keys(components);
 	    for (var i = 0, l = ids.length; i < l; i++) {
 	      var key = ids[i];
-	      if (commonTagRE.test(key)) {
-	        process.env.NODE_ENV !== 'production' && warn('Do not use built-in HTML elements as component ' + 'id: ' + key);
+	      if (commonTagRE.test(key) || reservedTagRE.test(key)) {
+	        process.env.NODE_ENV !== 'production' && warn('Do not use built-in or reserved HTML elements as component ' + 'id: ' + key);
 	        continue;
 	      }
 	      def = components[key];
@@ -3611,7 +3618,7 @@ webpackJsonp([0,1],[
 	
 	def(arrayProto, '$set', function $set(index, val) {
 	  if (index >= this.length) {
-	    this.length = index + 1;
+	    this.length = Number(index) + 1;
 	  }
 	  return this.splice(index, 1, val)[0];
 	});
@@ -3727,8 +3734,7 @@ webpackJsonp([0,1],[
 	
 	Observer.prototype.walk = function (obj) {
 	  var keys = Object.keys(obj);
-	  var i = keys.length;
-	  while (i--) {
+	  for (var i = 0, l = keys.length; i < l; i++) {
 	    this.convert(keys[i], obj[keys[i]]);
 	  }
 	};
@@ -3740,8 +3746,7 @@ webpackJsonp([0,1],[
 	 */
 	
 	Observer.prototype.observeArray = function (items) {
-	  var i = items.length;
-	  while (i--) {
+	  for (var i = 0, l = items.length; i < l; i++) {
 	    observe(items[i]);
 	  }
 	};
@@ -3805,10 +3810,8 @@ webpackJsonp([0,1],[
 	 */
 	
 	function copyAugment(target, src, keys) {
-	  var i = keys.length;
-	  var key;
-	  while (i--) {
-	    key = keys[i];
+	  for (var i = 0, l = keys.length; i < l; i++) {
+	    var key = keys[i];
 	    def(target, key, src[key]);
 	  }
 	}
@@ -3944,6 +3947,7 @@ webpackJsonp([0,1],[
 		replace: replace,
 		on: on$1,
 		off: off,
+		setClass: setClass,
 		addClass: addClass,
 		removeClass: removeClass,
 		extractContent: extractContent,
@@ -3959,7 +3963,9 @@ webpackJsonp([0,1],[
 		checkComponentAttr: checkComponentAttr,
 		initProp: initProp,
 		assertProp: assertProp,
+		coerceProp: coerceProp,
 		commonTagRE: commonTagRE,
+		reservedTagRE: reservedTagRE,
 		get warn () { return warn; }
 	});
 	
@@ -4887,11 +4893,11 @@ webpackJsonp([0,1],[
 	  if (this.active) {
 	    var value = this.get();
 	    if (value !== this.value ||
-	    // Deep watchers and Array watchers should fire even
+	    // Deep watchers and watchers on Object/Arrays should fire even
 	    // when the value is the same, because the value may
 	    // have mutated; but only do so if this is a
 	    // non-shallow update (caused by a vm digest).
-	    (isArray(value) || this.deep) && !this.shallow) {
+	    (isObject(value) || this.deep) && !this.shallow) {
 	      // set new value
 	      var oldValue = this.value;
 	      this.value = value;
@@ -4989,7 +4995,7 @@ webpackJsonp([0,1],[
 	var cloak = {
 	  bind: function bind() {
 	    var el = this.el;
-	    this.vm.$once('hook:compiled', function () {
+	    this.vm.$once('pre-hook:compiled', function () {
 	      el.removeAttribute('v-cloak');
 	    });
 	  }
@@ -5001,9 +5007,20 @@ webpackJsonp([0,1],[
 	  }
 	};
 	
+	var ON = 700;
+	var MODEL = 800;
+	var BIND = 850;
+	var TRANSITION = 1100;
+	var EL = 1500;
+	var COMPONENT = 1500;
+	var PARTIAL = 1750;
+	var SLOT = 1750;
+	var FOR = 2000;
+	var IF = 2000;
+	
 	var el = {
 	
-	  priority: 1500,
+	  priority: EL,
 	
 	  bind: function bind() {
 	    /* istanbul ignore if */
@@ -5137,13 +5154,12 @@ webpackJsonp([0,1],[
 	var xlinkNS = 'http://www.w3.org/1999/xlink';
 	var xlinkRE = /^xlink:/;
 	
-	// these input element attributes should also set their
-	// corresponding properties
-	var inputProps = {
-	  value: 1,
-	  checked: 1,
-	  selected: 1
-	};
+	// check for attributes that prohibit interpolations
+	var disallowedInterpAttrRE = /^v-|^:|^@|^(is|transition|transition-mode|debounce|track-by|stagger|enter-stagger|leave-stagger)$/;
+	
+	// these attributes should also set their corresponding properties
+	// because they only affect the initial state of the element
+	var attrWithPropsRE = /^(value|checked|selected|muted)$/;
 	
 	// these attributes should set a hidden property for
 	// binding v-model to object values
@@ -5153,12 +5169,9 @@ webpackJsonp([0,1],[
 	  'false-value': '_falseValue'
 	};
 	
-	// check for attributes that prohibit interpolations
-	var disallowedInterpAttrRE = /^v-|^:|^@|^(is|transition|transition-mode|debounce|track-by|stagger|enter-stagger|leave-stagger)$/;
-	
 	var bind = {
 	
-	  priority: 850,
+	  priority: BIND,
 	
 	  bind: function bind() {
 	    var attr = this.arg;
@@ -5208,34 +5221,43 @@ webpackJsonp([0,1],[
 	  handleObject: style.handleObject,
 	
 	  handleSingle: function handleSingle(attr, value) {
-	    if (inputProps[attr] && attr in this.el) {
-	      this.el[attr] = attr === 'value' ? value || '' : // IE9 will set input.value to "null" for null...
-	      value;
+	    var el = this.el;
+	    var interp = this.descriptor.interp;
+	    if (!interp && attrWithPropsRE.test(attr) && attr in el) {
+	      el[attr] = attr === 'value' ? value == null // IE9 will set input.value to "null" for null...
+	      ? '' : value : value;
 	    }
 	    // set model props
 	    var modelProp = modelProps[attr];
-	    if (modelProp) {
-	      this.el[modelProp] = value;
+	    if (!interp && modelProp) {
+	      el[modelProp] = value;
 	      // update v-model if present
-	      var model = this.el.__v_model;
+	      var model = el.__v_model;
 	      if (model) {
 	        model.listener();
 	      }
 	    }
 	    // do not set value attribute for textarea
-	    if (attr === 'value' && this.el.tagName === 'TEXTAREA') {
-	      this.el.removeAttribute(attr);
+	    if (attr === 'value' && el.tagName === 'TEXTAREA') {
+	      el.removeAttribute(attr);
 	      return;
 	    }
 	    // update attribute
 	    if (value != null && value !== false) {
-	      if (xlinkRE.test(attr)) {
-	        this.el.setAttributeNS(xlinkNS, attr, value);
+	      if (attr === 'class') {
+	        // handle edge case #1960:
+	        // class interpolation should not overwrite Vue transition class
+	        if (el.__v_trans) {
+	          value += ' ' + el.__v_trans.id + '-transition';
+	        }
+	        setClass(el, value);
+	      } else if (xlinkRE.test(attr)) {
+	        el.setAttributeNS(xlinkNS, attr, value);
 	      } else {
-	        this.el.setAttribute(attr, value);
+	        el.setAttribute(attr, value);
 	      }
 	    } else {
-	      this.el.removeAttribute(attr);
+	      el.removeAttribute(attr);
 	    }
 	  }
 	};
@@ -5291,7 +5313,7 @@ webpackJsonp([0,1],[
 	var on = {
 	
 	  acceptStatement: true,
-	  priority: 700,
+	  priority: ON,
 	
 	  bind: function bind() {
 	    // deal with iframes
@@ -5591,13 +5613,18 @@ webpackJsonp([0,1],[
 	      });
 	      this.on('blur', function () {
 	        self.focused = false;
-	        self.listener();
+	        // do not sync value after fragment removal (#2017)
+	        if (!self._frag || self._frag.inserted) {
+	          self.rawListener();
+	        }
 	      });
 	    }
 	
 	    // Now attach the main listener
-	    this.listener = function () {
-	      if (composing) return;
+	    this.listener = this.rawListener = function () {
+	      if (composing || !self._bound) {
+	        return;
+	      }
 	      var val = number || isRange ? toNumber(el.value) : el.value;
 	      self.set(val);
 	      // force update on next tick to avoid lock & same value
@@ -5677,7 +5704,7 @@ webpackJsonp([0,1],[
 	
 	var model = {
 	
-	  priority: 800,
+	  priority: MODEL,
 	  twoWay: true,
 	  handlers: handlers,
 	  params: ['lazy', 'number', 'debounce'],
@@ -5761,9 +5788,14 @@ webpackJsonp([0,1],[
 	  },
 	
 	  apply: function apply(el, value) {
-	    applyTransition(el, value ? 1 : -1, function () {
+	    if (inDoc(el)) {
+	      applyTransition(el, value ? 1 : -1, toggle, this.vm);
+	    } else {
+	      toggle();
+	    }
+	    function toggle() {
 	      el.style.display = value ? '' : 'none';
-	    }, this.vm);
+	    }
 	  }
 	};
 	
@@ -5798,7 +5830,7 @@ webpackJsonp([0,1],[
 	}
 	
 	var tagRE$1 = /<([\w:]+)/;
-	var entityRE = /&\w+;|&#\d+;|&#x[\dA-F]+;/;
+	var entityRE = /&#?\w+?;/;
 	
 	/**
 	 * Convert a string template to a DocumentFragment.
@@ -6244,7 +6276,7 @@ webpackJsonp([0,1],[
 	
 	var vIf = {
 	
-	  priority: 2000,
+	  priority: IF,
 	
 	  bind: function bind() {
 	    var el = this.el;
@@ -6307,7 +6339,7 @@ webpackJsonp([0,1],[
 	
 	var vFor = {
 	
-	  priority: 2000,
+	  priority: FOR,
 	
 	  params: ['track-by', 'stagger', 'enter-stagger', 'leave-stagger'],
 	
@@ -7302,7 +7334,7 @@ webpackJsonp([0,1],[
 	
 	var transition = {
 	
-	  priority: 1100,
+	  priority: TRANSITION,
 	
 	  update: function update(id, oldId) {
 	    var el = this.el;
@@ -7333,6 +7365,7 @@ webpackJsonp([0,1],[
 	    var twoWay = prop.mode === bindingModes.TWO_WAY;
 	
 	    var parentWatcher = this.parentWatcher = new Watcher(parent, parentKey, function (val) {
+	      val = coerceProp(prop, val);
 	      if (assertProp(prop, val)) {
 	        child[childKey] = val;
 	      }
@@ -7352,7 +7385,7 @@ webpackJsonp([0,1],[
 	      // important: defer the child watcher creation until
 	      // the created hook (after data observation)
 	      var self = this;
-	      child.$once('hook:created', function () {
+	      child.$once('pre-hook:created', function () {
 	        self.childWatcher = new Watcher(child, childKey, function (val) {
 	          parentWatcher.set(val);
 	        }, {
@@ -7375,7 +7408,7 @@ webpackJsonp([0,1],[
 	
 	var component = {
 	
-	  priority: 1500,
+	  priority: COMPONENT,
 	
 	  params: ['keep-alive', 'transition-mode', 'inline-template'],
 	
@@ -8568,12 +8601,8 @@ webpackJsonp([0,1],[
 	    // attribute interpolations
 	    if (tokens) {
 	      value = tokensToExp(tokens);
-	      if (name === 'class') {
-	        pushDir('class', internalDirectives['class'], true);
-	      } else {
-	        arg = name;
-	        pushDir('bind', publicDirectives.bind, true);
-	      }
+	      arg = name;
+	      pushDir('bind', publicDirectives.bind, true);
 	      // warn against mixing mustaches with v-bind
 	      if (process.env.NODE_ENV !== 'production') {
 	        if (name === 'class' && Array.prototype.some.call(attrs, function (attr) {
@@ -9234,6 +9263,7 @@ webpackJsonp([0,1],[
 	   */
 	
 	  Vue.prototype._callHook = function (hook) {
+	    this.$emit('pre-hook:' + hook);
 	    var handlers = this.$options[hook];
 	    if (handlers) {
 	      for (var i = 0, j = handlers.length; i < j; i++) {
@@ -9310,13 +9340,7 @@ webpackJsonp([0,1],[
 	  // remove attribute
 	  if ((name !== 'cloak' || this.vm._isCompiled) && this.el && this.el.removeAttribute) {
 	    var attr = descriptor.attr || 'v-' + name;
-	    if (attr !== 'class') {
-	      this.el.removeAttribute(attr);
-	    } else {
-	      // for class interpolations, only remove the parts that
-	      // need to be interpolated.
-	      this.el.className = removeTags(this.el.className).trim().replace(/\s+/g, ' ');
-	    }
+	    this.el.removeAttribute(attr);
 	  }
 	
 	  // copy def properties
@@ -9334,6 +9358,7 @@ webpackJsonp([0,1],[
 	  if (this.bind) {
 	    this.bind();
 	  }
+	  this._bound = true;
 	
 	  if (this.literal) {
 	    this.update && this.update(descriptor.raw);
@@ -9369,7 +9394,6 @@ webpackJsonp([0,1],[
 	      this.update(watcher.value);
 	    }
 	  }
-	  this._bound = true;
 	};
 	
 	/**
@@ -9426,7 +9450,8 @@ webpackJsonp([0,1],[
 	      called = true;
 	    }
 	  }, {
-	    immediate: true
+	    immediate: true,
+	    user: false
 	  });(this._paramUnwatchFns || (this._paramUnwatchFns = [])).push(unwatch);
 	};
 	
@@ -9589,6 +9614,11 @@ webpackJsonp([0,1],[
 	    var original = el;
 	    el = transclude(el, options);
 	    this._initElement(el);
+	
+	    // handle v-pre on root node (#2026)
+	    if (el.nodeType === 1 && getAttr(el, 'v-pre') !== null) {
+	      return;
+	    }
 	
 	    // root is always compiled per-instance, because
 	    // container attrs and props can be different every time.
@@ -10017,8 +10047,8 @@ webpackJsonp([0,1],[
 	      } else {
 	        /* istanbul ignore if */
 	        if (process.env.NODE_ENV !== 'production') {
-	          if (type === 'component' && commonTagRE.test(id)) {
-	            warn('Do not use built-in HTML elements as component ' + 'id: ' + id);
+	          if (type === 'component' && (commonTagRE.test(id) || reservedTagRE.test(id))) {
+	            warn('Do not use built-in or reserved HTML elements as component ' + 'id: ' + id);
 	          }
 	        }
 	        if (type === 'component' && isPlainObject(definition)) {
@@ -10110,7 +10140,8 @@ webpackJsonp([0,1],[
 	    var watcher = new Watcher(vm, expOrFn, cb, {
 	      deep: options && options.deep,
 	      sync: options && options.sync,
-	      filters: parsed && parsed.filters
+	      filters: parsed && parsed.filters,
+	      user: !options || options.user !== false
 	    });
 	    if (options && options.immediate) {
 	      cb.call(vm, watcher.value);
@@ -10874,7 +10905,7 @@ webpackJsonp([0,1],[
 	
 	var partial = {
 	
-	  priority: 1750,
+	  priority: PARTIAL,
 	
 	  params: ['name'],
 	
@@ -10925,7 +10956,7 @@ webpackJsonp([0,1],[
 	
 	var slot = {
 	
-	  priority: 1750,
+	  priority: SLOT,
 	
 	  bind: function bind() {
 	    var host = this.vm;
@@ -11030,7 +11061,7 @@ webpackJsonp([0,1],[
 	  partial: partial
 	};
 	
-	Vue.version = '1.0.11';
+	Vue.version = '1.0.13';
 	
 	/**
 	 * Vue and every constructor that extends Vue has an
