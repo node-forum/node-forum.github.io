@@ -1,11 +1,11 @@
-#基于vue.js重写Cnodejs.org社区的webapp [线上访问地址](http://shinygang.github.io/cnodevue/)
+#基于vue.js重写Cnodejs.org社区的webapp [线上访问地址](http://node-forum.sblig.club/)
 
 ###安装
 
 项目地址：（`git clone`）
 
 ```shell
-git clone https://github.com/shinygang/Vue-cnodejs.git
+git clone https://github.com/node-forum/node-forum.github.io.git
 ```
 
 通过`npm`安装本地服务第三方依赖模块(需要已安装[Node.js](https://nodejs.org/))
