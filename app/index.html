@@ -9,8 +9,8 @@
     <p>{{msg}}</p>
     <input v-model="msg">
     <ul>
-        <li v-repeat="arr">
-            {{msg}}
+        <li v-for="a in arr">
+            {{a.msg}}
         </li>
     </ul>
 </div>
