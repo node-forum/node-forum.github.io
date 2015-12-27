@@ -7,6 +7,11 @@ var vue = new Vue({
     data: {
         msg: 'Hello Vue.js!',
         arr:[{msg:'A'},{msg:'B'}]
+    },
+    methods:{
+        reverseMessage:function(){
+            this.msg = this.msg.split('').reverse().join('');
+        }
     }
 });
 
@@ -16,3 +21,6 @@ var myCompoment = Vue.extend({
 });
 
 Vue.component('mycom',myCompoment);
+
+
+
